@@ -1,8 +1,8 @@
 all:
-	stack build
+	stack build --install-ghc
 
 install:
-	stack install
+	stack install --install-ghc
 	sudo chown root:root ~/.local/bin/xleds
 	sudo chmod u+s ~/.local/bin/xleds
 
