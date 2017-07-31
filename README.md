@@ -4,23 +4,41 @@ Controls the brightness of your keyboard backlight.
 Usage is nearly identical to [xbacklight](https://github.com/tcatm/xbacklight).
 
 ```
-Usage: xleds [options]
+Usage: xleds [key|screen] [command]
 
-Options:
+Commands:
   -get
-  -set <percentage> or = <percentage>
-  -inc <percentage> or + <percentage>
-  -dec <percentage> or - <percentage>
+  -set <amount|percentage%> or = <amount|percentage%>
+  -inc <amount|percentage%> or + <amount|percentage%>
+  -dec <amount|percentage%> or - <amount|percentage%>
 ```
 
 If you are using `xbindkeys`, you can use something like the following in your `~/.xbindkeysrc` -
 
 ```
-"xleds -dec 20"
+"xleds screen - 10%"
+  XF86MonBrightnessDown
+
+"xleds screen + 10%"
+  XF86MonBrightnessUp
+
+"xleds screen - 1%"
+  Shift + XF86MonBrightnessDown
+
+"xleds screen + 1%"
+  Shift + XF86MonBrightnessUp
+
+"xleds key - 10"
   XF86KbdBrightnessDown
 
-"xleds -inc 20"
+"xleds key + 10"
   XF86KbdBrightnessUp
+
+"xleds key - 1"
+  Shift + XF86KbdBrightnessDown
+
+"xleds key + 1"
+  Shift + XF86KbdBrightnessUp
 ```
 
 You can install this using `make install`, which mostly delegates to stack.
