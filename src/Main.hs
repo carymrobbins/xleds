@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
@@ -42,46 +41,31 @@ data Amount
 
 data ArgFailure = ShowHelp | InvalidUsage String
 
-data ParseResult e a = ParseError e | ParseSuccess a
-  deriving (Functor)
-
-instance Applicative (ParseResult e) where
-  pure = ParseSuccess
-  mf <*> ma = case (mf, ma) of
-    (ParseSuccess f, ParseSuccess a) -> ParseSuccess $ f a
-    (ParseError e, _) -> ParseError e
-    (_, ParseError e) -> ParseError e
-
-instance Monad (ParseResult e) where
-  ma >>= f = case ma of
-    ParseError e -> ParseError e
-    ParseSuccess a -> f a
-
-parseArgs :: [String] -> ParseResult ArgFailure Args
+parseArgs :: [String] -> Either ArgFailure Args
 parseArgs args = case args of
-  [] -> ParseError $ InvalidUsage "Missing argument"
-  [help] | help `elem` ["-h", "--help"] -> ParseError ShowHelp
+  [] -> Left $ InvalidUsage "Missing argument"
+  [help] | help `elem` ["-h", "--help"] -> Left ShowHelp
   device : command -> Args <$> parseDevice device <*> parseCommand command
   where
   parseDevice = \case
-    "key" -> ParseSuccess Keyboard
-    "screen" -> ParseSuccess Screen
-    other -> ParseError $ InvalidUsage $ "Expected key or screen, got: " <> other
+    "key" -> Right Keyboard
+    "screen" -> Right Screen
+    other -> Left $ InvalidUsage $ "Expected key or screen, got: " <> other
 
   parseCommand = \case
-    ["-get"] -> ParseSuccess Get
+    ["-get"] -> Right Get
     [set, val] | set `elem` ["-set", "="] -> Set <$> parseAmount val
     [inc, val] | inc `elem` ["-inc", "+"] -> Inc <$> parseAmount val
     [dec, val] | dec `elem` ["-dec", "-"] -> Dec <$> parseAmount val
-    _ -> ParseError $ InvalidUsage "Invalid command"
+    _ -> Left $ InvalidUsage "Invalid command"
 
   parseAmount s = case s of
-    "" -> ParseError $ InvalidUsage "Empty amount value"
+    "" -> Left $ InvalidUsage "Empty amount value"
     _ -> case readMaybe s of
-      Just n -> ParseSuccess $ RawAmount n
+      Just n -> Right $ RawAmount n
       Nothing -> case readMaybe $ init s of
-        Just p | p >= 0 && p <= 100 -> ParseSuccess $ PercentAmount $ Percent $ p / 100
-        Nothing -> ParseError $ InvalidUsage $ "Invalid amount value: " <> s
+        Just p | p >= 0 && p <= 100 -> Right $ PercentAmount $ Percent $ p / 100
+        Nothing -> Left $ InvalidUsage $ "Invalid amount value: " <> s
 
 findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
 findM f xs = case xs of
@@ -141,9 +125,9 @@ instance Show Percent where
 
 main :: IO ()
 main = (parseArgs <$> getArgs) >>= \case
-  ParseError ShowHelp -> putStrLn usage
-  ParseError (InvalidUsage msg) -> hPutStrLn stderr (msg <> "\n" <> usage) >> exitFailure
-  ParseSuccess args -> runCommand args
+  Left ShowHelp -> putStrLn usage
+  Left (InvalidUsage msg) -> hPutStrLn stderr (msg <> "\n" <> usage) >> exitFailure
+  Right args -> runCommand args
 
 getCurrentBrightness :: FilePath -> IO Int
 getCurrentBrightness ledsDir = do
