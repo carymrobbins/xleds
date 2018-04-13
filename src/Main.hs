@@ -1,8 +1,8 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
-module Main (main) where
 
 import Data.List
 import Data.Maybe
@@ -43,11 +43,7 @@ data Amount
 data ArgFailure = ShowHelp | InvalidUsage String
 
 data ParseResult e a = ParseError e | ParseSuccess a
-
-instance Functor (ParseResult e) where
-  fmap f p = case p of
-    ParseError e -> ParseError e
-    ParseSuccess a -> ParseSuccess $ f a
+  deriving (Functor)
 
 instance Applicative (ParseResult e) where
   pure = ParseSuccess
