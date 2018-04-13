@@ -1,6 +1,6 @@
 # xleds
 
-Controls the brightness of your keyboard backlight.
+Controls the brightness of your keyboard and screen backlight.
 Usage is nearly identical to [xbacklight](https://github.com/tcatm/xbacklight).
 
 ```
